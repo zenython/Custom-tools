@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Define the input file containing API keys
+input_file="api_keys.txt"
+# Define the output file to store vulnerable API keys
+output_file="heroku_vulnerable.txt"
+
+# Clear the output file if it already exists
+> "$output_file"
+
+# Loop through each line (API key) in the input file
+while IFS= read -r api_key; do
+    # Execute the curl command with the current API key
+    response=$(curl -s -X POST https://api.heroku.com/apps \
+        -H "Accept: application/vnd.heroku+json; version=3" \
+        -H "Authorization: Bearer $api_key")
+
+    # Check if the response contains the unauthorized message
+    if echo "$response" | grep -q '"id": "unauthorized"'; then
+        echo "API Key $api_key: Not vulnerable"
+    else
+        echo "API Key $api_key: Vulnerable"
+        # Store the vulnerable API key in the output file
+        echo "$api_key" >> "$output_file"
+    fi
+done < "$input_file"
+
+echo "Vulnerable API keys have been saved to $output_file."

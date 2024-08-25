@@ -1,0 +1,14 @@
+#!/bin/bash
+
+subdomain_list="$list"
+
+# Correct the syntax for the for loop and command redirection
+for sub in $(cat $subdomain_list | rev | cut -d '.' -f 3,2,1 | rev | sort | uniq -c | sort); do
+ # subfinder -d $sub  -max-time 2 | anew -q domains.txt
+  assetfinder -subs-only $sub | anew -q subdomains.txt
+ # curl -s https://crt.sh/\?q\=\$sub\&output\=json | jq -r '.[].name_value' | grep -Po '(\w+\.\w+\.\w+)$' | anew subdomains.txt
+ # amass enum -timeout 2 --passive -d $sub | anew -q domains.txt
+  #findomain  -t $sub | anew -q domains.txt
+  #subdominator -d $sub -t 2 | anew -q domains.txt
+done
+

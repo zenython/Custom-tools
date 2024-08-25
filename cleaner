@@ -1,0 +1,1 @@
+awk -F'^http[s]?://' '{print $2}' alive.txt > clear.txt
