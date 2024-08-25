@@ -9,7 +9,7 @@ usage() {
     echo "  -o, --output      Specify the name of the output file."
     echo "      --full        Add the 'FUZZ' keyword after all '=' in a URL."
     echo "  -e, --endpoint    Shorten the URL by removing data after '=' and add 'FUZZ' at the end of the parameter."
-    echo "  -f, --fuzz        Fuzz the output recursively using the specified wordlist."
+    echo "  -f, --fuzz        Fuzz the output recursively using a specified wordlist."
     echo "  -h, --help        Display this help message and exit."
     exit 0
 }
@@ -46,6 +46,16 @@ if [ ! -f "$inputfile" ]; then
     exit 1
 fi
 
+# If fuzz mode is enabled, prompt for wordlist
+if $fuzz_mode; then
+    read -p "Enter the path to the wordlist file: " wordlist
+
+    if [ ! -f "$wordlist" ]; then
+        echo "Error: The wordlist file $wordlist does not exist."
+        exit 1
+    fi
+fi
+
 # If only -i and -o are provided, modify URLs and save to output
 if [ "$full_mode" = false ] && [ "$endpoint_mode" = false ] && [ "$fuzz_mode" = false ]; then
     # Read the input file content
@@ -66,128 +76,31 @@ fi
 
 # Process the input file based on the selected mode
 if $full_mode; then
-    url=$(sed 's/=/=FUZZ/g' "$inputfile" | qsreplace "FUZZ")
+    url=$(sed 's/=/=FUZZ/g' "$inputfile")
     echo "$url" > "$outputfile"
-    echo "Output saved to $outputfile and assigned to \$url environment variable."
-    export url="$url"
+    echo "Output saved to $outputfile."
 elif $endpoint_mode; then
-    url=$(sed 's/=.*/=/' "$inputfile" | qsreplace "FUZZ")
+    url=$(sed 's/=.*/=FUZZ/' "$inputfile")
     echo "$url" > "$outputfile"
-    echo "Output saved to $outputfile and assigned to \$url environment variable."
-    export url="$url"
+    echo "Output saved to $outputfile."
 fi
 
 # If fuzz mode is enabled
 if $fuzz_mode; then
-    if [ -z "$url" ]; then
-        echo "Error: --full or --endpoint must be executed before --fuzz."
+    if [ ! -s "$outputfile" ]; then
+        echo "Error: Output file is empty. Please check your input or processing options."
         exit 1
     fi
 
     echo "Fuzzing with the specified wordlist..."
-    while read -r urls; do
-        ffuf -u "$urls" -w "$word" -c -v
-    done < "$outputfile" | tee fuzzed.txt
+    
+    # Initialize or clear the fuzzed.txt file
+    > fuzzed.txt
 
-    echo "Fuzzing results saved to fuzzed.txt."
-fi
-#!/bin/bash
-
-# Function to print usage information
-usage() {
-    echo "Usage: $0 -i inputfile -o outputfile [-w wordlist] [--full] [-e | --endpoint] [-f | --fuzz] [-h | --help]"
-    echo ""
-    echo "Options:"
-    echo "  -i, --input       Provide the input file."
-    echo "  -o, --output      Specify the name of the output file."
-    echo "  -w, --wordlist    Specify the wordlist file to use with --fuzz."
-    echo "      --full        Add the 'FUZZ' keyword after all '=' in a URL."
-    echo "  -e, --endpoint    Shorten the URL by removing data after '=' and add 'FUZZ' at the end of the parameter."
-    echo "  -f, --fuzz        Fuzz the output recursively using the specified wordlist."
-    echo "  -h, --help        Display this help message and exit."
-    exit 0
-}
-
-# Parse command-line arguments
-inputfile=""
-outputfile=""
-wordlist=""
-full_mode=false
-endpoint_mode=false
-fuzz_mode=false
-
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        -i|--input) inputfile="$2"; shift ;;
-        -o|--output) outputfile="$2"; shift ;;
-        -w|--wordlist) wordlist="$2"; shift ;;
-        --full) full_mode=true ;;
-        -e|--endpoint) endpoint_mode=true ;;
-        -f|--fuzz) fuzz_mode=true ;;
-        -h|--help) usage ;;
-        *) echo "Unknown parameter passed: $1"; usage ;;
-    esac
-    shift
-done
-
-# Check if inputfile and outputfile are provided
-if [ -z "$inputfile" ] || [ -z "$outputfile" ]; then
-    echo "Error: Input file and output file are required."
-    usage
-fi
-
-# Check if input file exists
-if [ ! -f "$inputfile" ]; then
-    echo "Error: The input file $inputfile does not exist."
-    exit 1
-fi
-
-# Check if wordlist is provided and exists if fuzz mode is enabled
-if $fuzz_mode && [ -z "$wordlist" ]; then
-    echo "Error: Wordlist file is required for fuzzing."
-    usage
-elif [ -n "$wordlist" ] && [ ! -f "$wordlist" ]; then
-    echo "Error: The wordlist file $wordlist does not exist."
-    exit 1
-fi
-
-# If only -i and -o are provided, modify URLs and save to output
-if [ "$full_mode" = false ] && [ "$endpoint_mode" = false ] && [ "$fuzz_mode" = false ]; then
-    # Read the input file content
-    text=$(<"$inputfile")
-
-    # Regex pattern to match URLs
-    url_pattern='https\?://[^[:space:]]\+'
-
-    # Replace original URLs with modified URLs in the text
-    modified_text=$(echo "$text" | sed "s|\($url_pattern\)|\1/FUZZ|g")
-
-    # Save the modified text to the output file
-    echo "$modified_text" > "$outputfile"
-
-    echo "Modified text has been saved to $outputfile."
-    exit 0
-fi
-
-# Process the input file based on the selected mode
-if $full_mode; then
-    url=$(sed 's/=/=FUZZ/g' "$inputfile" | qsreplace "FUZZ")
-    echo "$url" > "$outputfile"
-    echo "Output saved to $outputfile and assigned to \$url environment variable."
-    export url="$url"
-elif $endpoint_mode; then
-    url=$(sed 's/=.*/=/' "$inputfile" | qsreplace "FUZZ")
-    echo "$url" > "$outputfile"
-    echo "Output saved to $outputfile and assigned to \$url environment variable."
-    export url="$url"
-fi
-
-# If fuzz mode is enabled
-if $fuzz_mode; then
-    echo "Fuzzing with the specified wordlist..."
-    while read -r urls; do
-        ffuf -u "$urls" -w "$wordlist" -c -v
-    done < "$outputfile" | tee fuzzed.txt
+    # Read each URL from the output file and run ffuf
+    while IFS= read -r url; do
+        ffuf -u "$url" -w "$wordlist" -c -v -mc 200,302,301 | tee -a fuzzed.txt
+    done < "$outputfile"
 
     echo "Fuzzing results saved to fuzzed.txt."
 fi
