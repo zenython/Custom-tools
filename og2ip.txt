@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Check for the input file option
+if [[ "$1" == "-i" && -f "$2" ]]; then
+    input_file="$2"
+else
+    echo "Usage: $0 -i <input_file>"
+    exit 1
+fi
+
+# Read domain names from the input file
+domains=$(cat "$input_file")
+
+# Function to process each domain recursively
+process_domain() {
+    local domain="$1"
+    echo "Processing domain: $domain"
+
+    # Execute the crimeflare.php command and extract Real IP
+    crimeflare.php "$domain" | awk '/Real IP/ { gsub("Real IP : ", ""); print >> "ogip.txt" }' 
+
+    # Ensure the results are saved without overwriting previous entries
+    echo "Real IP for $domain saved to ogip.txt"
+}
+
+# Loop through each domain and process
+for domain in $domains; do
+    process_domain "$domain"
+done
