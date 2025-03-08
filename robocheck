@@ -1,0 +1,76 @@
+#!/bin/bash
+
+
+if [[ "$1" != "-i" || -z "$2" ]]; then
+    echo "Usage: $0 -i <input_file>"
+    exit 1
+fi
+
+input_file="$2"
+output_file="robofound.txt"
+
+
+> "$output_file"
+
+
+check_url() {
+    url="$1"
+    echo "[*] Checking: $url"
+    response=$(curl -o /dev/null -s -w "%{http_code}" "$url")
+    
+    echo "   └── Status: $response"
+
+    
+    echo "$url [$response]" >> "$output_file"
+}
+
+
+process_robots() {
+    site="$1"
+    robots_content="$2"
+
+    echo "[+] Processing robots.txt for: $site"
+
+    
+    if ! echo "$robots_content" | grep -qE "(User-agent|Disallow|Allow)"; then
+        echo "   └── Skipping: No relevant data found."
+        return
+    fi
+
+    
+    echo "$robots_content" | grep -Eo "^(Disallow|Allow): .*" | awk '{print $2}' | while read -r path; do
+        if [[ -n "$path" && "$path" != "/" ]]; then
+            check_url "${site}${path}"
+        fi
+    done
+}
+
+
+while IFS= read -r site; do
+    site=$(echo "$site" | sed 's|/$||')  # Remove trailing slash
+    robots_url="${site}/robots.txt"
+
+    echo "[*] Checking: $robots_url"
+    robots_content=$(curl -s "$robots_url")
+
+    if [[ -z "$robots_content" ]]; then
+        echo "   └── No robots.txt found, checking web archive..."
+        wayback_url="https://web.archive.org/web/*/${robots_url}"
+        robots_url=$(curl -s "$wayback_url" | grep -oP '(?<=href=")[^"]*' | grep "/robots.txt" | head -n 1)
+
+        if [[ -z "$robots_url" ]]; then
+            echo "   └── No robots.txt found in Web Archive."
+            continue
+        else
+            echo "   └── Found in Web Archive: $robots_url"
+            robots_content=$(curl -s "$robots_url")
+        fi
+    else
+        echo "   └── Robots.txt found: $robots_url"
+    fi
+
+    process_robots "$site" "$robots_content"
+
+done < "$input_file"
+
+echo "[✔] Results saved in $output_file"
