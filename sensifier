@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Function to display usage information
+usage() {
+    echo "Usage: $0 -i <input_file>"
+    exit 1
+}
+
+# Parse command-line arguments
+while getopts ":i:" opt; do
+    case ${opt} in
+        i ) input_file=$OPTARG ;;
+        * ) usage ;;
+    esac
+done
+
+# Check if input file is provided
+if [ -z "$input_file" ]; then
+    usage
+fi
+
+# Create the output directory
+mkdir -p sensitives
+
+# Define the list of sensitive extensions
+extensions=(db sql sqlite sqlite3 mdb env yml yaml json ini config xml bak backup old zip tar gz 7z rar log swp swo htpasswd htaccess pem crt key pdf xls xlsx csv)
+
+# Process each extension
+for ext in "${extensions[@]}"; do
+    echo "Processing .$ext files..."
+    grep -E "\.$ext(\s|\$|\")" "$input_file" | httpx-toolkit -sc | tee "sensitives/$ext.txt"
+done
+
+# Completion message
+echo "Happy Hacking!"
