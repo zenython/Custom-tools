@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Prompt for workspace name
+read -p "Enter workspace name: " workspacename
+
+# Check if domain.txt exists
+if [ ! -f "domain.txt" ]; then
+    echo "Error: domain.txt not found!"
+    exit 1
+fi
+
+# Counter variable
+count=1
+
+# Read and process each domain line by line
+while read -r domain; do
+    echo "Inserting domain: $domain ($count)"
+
+    recon-ng <<EOF
+workspaces load $workspacename
+db insert domains
+$domain
+$count
+exit
+EOF
+
+    ((count++))  # Increment counter
+done < domain.txt
+
+echo "All domains have been inserted successfully!"
+
