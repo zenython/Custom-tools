@@ -16,12 +16,13 @@ def read_data_from_file(file_path):
 
 def write_csv(filename, domains, start_index):
     """
-    Write a CSV file with a header and domain-description pairs.
+    Write a CSV file with domain-description pairs.
     The description is generated as "scan{n}" based on the domain's global position.
+    Note: The header row is removed.
     """
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['Address', 'Description'])  # Write header row
+        # Removed header row: writer.writerow(['Address', 'Description'])
         for i, domain in enumerate(domains):
             writer.writerow([domain, f"scan{start_index + i + 1}"])
 
