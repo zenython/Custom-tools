@@ -1,0 +1,52 @@
+#!/bin/zsh
+
+usage() {
+    echo "Usage: $0 -i input_file [-o output_file]"
+    exit 1
+}
+
+while getopts ":i:o:" opt; do
+    case ${opt} in
+        i ) input_file=$OPTARG ;;
+        o ) output_file=$OPTARG ;;
+        * ) usage ;;
+    esac
+done
+
+if [[ -z "$input_file" ]]; then
+    usage
+fi
+
+if [[ ! -f "$input_file" ]]; then
+    echo "Error: Input file does not exist."
+    exit 1
+fi
+
+echo "Starting Logjammer..."
+[[ -n "$output_file" ]] && echo "Starting Logjammer..." > "$output_file"
+
+while read -r url; do
+    if [[ -n "$url" ]]; then
+        clean_url=${url#*://}  # Remove http:// or https://
+        echo "Testing: $clean_url"
+        [[ -n "$output_file" ]] && echo "Testing: $clean_url" >> "$output_file"
+        
+        # OpenSSL test
+        echo "Running OpenSSL test..."
+        [[ -n "$output_file" ]] && echo "Running OpenSSL test..." >> "$output_file"
+        openssl s_client -connect "$clean_url:443" -cipher 'EXP' -quiet 2>&1 \
+            | grep -Ev "no cipher match|Call to SSL_CONF_cmd\(-cipher, EXP\) failed|tee: '': No such file or directory" \
+            | tee -a "$output_file"
+        
+        # Nmap test
+        echo "Running Nmap SSL cipher scan..."
+        [[ -n "$output_file" ]] && echo "Running Nmap SSL cipher scan..." >> "$output_file"
+        nmap --script ssl-enum-ciphers -p 443 "$clean_url" 2>&1 | tee -a "$output_file"
+        
+        echo "----------------------------------------"
+        [[ -n "$output_file" ]] && echo "----------------------------------------" >> "$output_file"
+    fi
+done < "$input_file"
+
+echo "Logjammer completed."
+[[ -n "$output_file" ]] && echo "Logjammer completed. Output saved in $output_file."
