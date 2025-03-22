@@ -1,0 +1,37 @@
+#!/bin/zsh
+
+# Check if sentry-keys.txt exists
+if [[ ! -f sentry-keys.txt ]]; then
+  echo "❌ sentry-keys.txt not found!"
+  exit 1
+fi
+
+# Temporary variable to store the valid token
+valid_token=""
+
+# Read each token from sentry-keys.txt
+while IFS= read -r token; do
+  echo "🔄 Attempting login with token: $token"
+
+  # Run sentry-cli login, pressing "no" and entering the token
+  output=$({ echo "n"; echo "$token"; } | sentry-cli login 2>&1)
+
+  # Check if the token is valid
+  if [[ $output == *"Success"* ]]; then
+    echo "✅ Token is valid: $token"
+    valid_token="$token"
+    break  # Stop checking after finding a valid token
+  else
+    echo "❌ Invalid token: $token. Removing..."
+  fi
+done < sentry-keys.txt
+
+# Overwrite sentry-keys.txt with only the valid token
+if [[ -n $valid_token ]]; then
+  echo "$valid_token" > sentry-keys.txt
+else
+  echo "⚠ No valid token found. Clearing sentry-keys.txt..."
+  > sentry-keys.txt  # Clear the file if no valid token
+fi
+
+echo "✔ Process completed!"
