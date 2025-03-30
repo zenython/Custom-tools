@@ -1,0 +1,182 @@
+#!/bin/bash
+
+# Check if ~/tools directory exists, if not create it
+if [ ! -d "$HOME/tools" ]; then
+    mkdir -p "$HOME/tools"
+fi
+cd "$HOME/tools"
+
+# Update and upgrade system
+sudo apt update && sudo apt-get dist-upgrade -y
+
+# Check if Go is installed
+if [ ! -d "/usr/local/go" ]; then
+    GO_LATEST=$(curl -s https://go.dev/VERSION?m=text | head -n 1)
+    curl -LO "https://go.dev/dl/${GO_LATEST}.linux-amd64.tar.gz"
+    tar -xzf "${GO_LATEST}.linux-amd64.tar.gz"
+    sudo mv go /usr/local/
+    rm "${GO_LATEST}.linux-amd64.tar.gz"
+fi
+
+# Check if Go environment variables are already set
+if ! grep -q "GOROOT=/usr/local/go" ~/.zshrc; then
+    echo "export GOPATH=$HOME/go
+export GOROOT=/usr/local/go
+export PATH=\$PATH:\$GOROOT/bin/:\$GOPATH/bin" >> ~/.zshrc
+    source ~/.zshrc
+fi
+
+# Remove downloaded tar file
+rm "${GO_LATEST}.linux-amd64.tar.gz"
+
+# Update and install necessary dependencies
+sudo apt update && sudo apt install -y unzip curl git python3-pip ruby make
+
+# Install Findomain
+curl -LO https://github.com/findomain/findomain/releases/latest/download/findomain-linux.zip
+unzip findomain-linux.zip
+chmod +x findomain
+sudo mv findomain /usr/bin/findomain
+rm findomain-linux.zip
+findomain --help
+
+# Install Subfinder
+go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+
+# Install Assetfinder
+go install github.com/tomnomnom/assetfinder@latest
+
+# Install Waybackurls
+go install github.com/tomnomnom/waybackurls@latest
+
+# Install httpx-toolkit
+sudo apt install httpx-toolkit
+
+# Install Nuclei
+go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+nuclei -h
+
+# Install Subzy
+go install -v github.com/PentestPad/subzy@latest
+
+# Install Gf
+go install github.com/tomnomnom/gf@latest
+git clone https://github.com/1ndianl33t/Gf-Patterns
+mkdir -p ~/.gf
+mv Gf-Patterns/*.json ~/.gf/
+rm -rf Gf-Patterns
+gf -list
+
+# Install gmapapiscanner
+git clone https://github.com/ozguralp/gmapsapiscanner.git
+cd gmapsapiscanner
+chmod +x maps_api_scanner.py
+cd ..
+
+# Install Dirsearch
+git clone https://github.com/maurosoria/dirsearch.git --depth 1
+
+# Install ffuf
+sudo rm ffuf
+go install github.com/ffuf/ffuf/v2@latest
+
+# Install WPScan
+sudo gem install wpscan
+
+# Install SSTImap
+git clone https://github.com/vladko312/SSTImap.git
+cd SSTImap
+pip3 install -r requirements.txt --break-system-packages
+chmod +x sstimap.py
+cd ..
+
+# Install SQLMap
+git clone --depth 1 https://github.com/sqlmapproject/sqlmap.git sqlmap-dev
+
+# Install gau
+go install github.com/lc/gau/v2/cmd/gau@latest
+
+# Install Katana
+go install github.com/projectdiscovery/katana/cmd/katana@latest
+
+# Install Subdominatr
+pip install git+https://github.com/RevoltSecurities/Subdominator --break-system-packages
+
+# Install Uro
+pip3 install uro --break-system-packages
+
+# Install SSRFmap
+git clone https://github.com/swisskyrepo/SSRFmap.git
+cd SSRFmap/
+pip3 install -r requirements.txt --break-system-packages
+cd ..
+
+# Install MassDNS
+git clone https://github.com/blechschmidt/massdns.git
+cd massdns
+make
+sudo make install
+cd ..
+
+# Install PureDNS
+go install github.com/d3mondev/puredns/v2@latest
+
+# Install ShortScan
+go install github.com/bitquark/shortscan/cmd/shortscan@latest
+
+# Install Eyewitness
+sudo apt install eyewitness
+
+# Install Anew
+go install -v github.com/tomnomnom/anew@latest
+
+# Install SecretFinder
+git clone https://github.com/m4ll0k/SecretFinder.git secretfinder
+cd secretfinder
+pip3 install -r requirements.txt --break-system-packages
+cd ..
+
+# Install Gfx
+go install github.com/dwisiswant0/gfx@latest
+
+# Install APKLeaks
+git clone https://github.com/dwisiswant0/apkleaks.git
+cd apkleaks
+pip3 install -r requirements.txt --break-system-packages
+cd ..
+
+# Install Sublist3r
+sudo apt install sublist3r
+
+# Install Convert-domain-2-IP
+git clone https://github.com/blackhatethicalhacking/Domain2IP-Converter.git
+cd Domain2IP-Converter
+chmod +x convert_d2ip.sh
+sudo mv convert_d2ip.sh /usr/bin/
+cd ..
+
+# Install Amass
+go install -v github.com/owasp-amass/amass/v4/...@master
+
+# Install Isit-alive
+git clone https://github.com/blackhatethicalhacking/isitalive.git
+cd isitalive
+chmod +x isitalive.sh
+sudo mv isitalive.sh
+cd ..
+
+# Install Naabu
+sudo apt install -y libpcap-dev
+go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest
+
+# Install Custom-tools
+git clone https://github.com/zenython/Custom-tools.git
+
+# Setting Up Proxy
+echo "export http_proxy=localhost:8080 && export https_proxy=localhost:8080" >> ~/.zshrc
+
+# Install Waymore 
+pip install git+https://github.com/xnl-h4ck3r/waymore.git -v --break-system-packages
+
+# Cleanup
+echo "Installation completed!"
