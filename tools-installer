@@ -180,3 +180,12 @@ pip install git+https://github.com/xnl-h4ck3r/waymore.git -v --break-system-pack
 
 # Cleanup
 echo "Installation completed!"
+
+
+#for the shared folder connection use this commands first enable them in settings then open vm and in terminal type
+# vmware-hgfsclient -- see the client name (the folder you shared)
+# cd to /mnt then create the folder name you want for eg oldy 
+# then type this command `sudo vmhgfs-fuse .host:/theorignalfoldersharedname /mnt/oldy -o allow_other -o uid=1000`
+
+
+# add this line to vm ware .vmx file : `keyboard.vusb.enable = "TRUE"`
