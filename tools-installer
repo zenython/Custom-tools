@@ -190,6 +190,7 @@ echo "Installation completed!"
 
 # add this line to vm ware .vmx file : `keyboard.vusb.enable = "TRUE"`
 
+#To-Make-Bash-Good-With-Syntax-Hilighting:
 # git clone https://github.com/akinomyoga/ble.sh.git
 # cd ble.sh
 # make
