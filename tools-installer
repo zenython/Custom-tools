@@ -189,3 +189,8 @@ echo "Installation completed!"
 
 
 # add this line to vm ware .vmx file : `keyboard.vusb.enable = "TRUE"`
+
+# git clone https://github.com/akinomyoga/ble.sh.git
+# cd ble.sh
+# make
+# make INSDIR="$HOME/.local/share/blesh" install
