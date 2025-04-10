@@ -100,7 +100,7 @@ go install github.com/lc/gau/v2/cmd/gau@latest
 go install github.com/projectdiscovery/katana/cmd/katana@latest
 
 # Install Subdominatr
-pip install git+https://github.com/RevoltSecurities/Subdominator --break-system-packages
+pip install --upgrade subdominator --break-system-packages
 
 # Install Uro
 pip3 install uro --break-system-packages
