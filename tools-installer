@@ -195,3 +195,14 @@ echo "Installation completed!"
 # cd ble.sh
 # make
 # make INSDIR="$HOME/.local/share/blesh" install
+
+# bashrc
+
+# Add the following line at the beginning of bashrc
+#(R)[[ $- == *i* ]] &&
+  #(R)source "$HOME/.local/share/blesh/ble.sh" --attach=none
+
+# ... other bashrc settings ...
+
+# Add the following line at the end of bashrc
+#(R)[[ ${BLE_VERSION-} ]] && ble-attach
