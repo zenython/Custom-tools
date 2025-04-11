@@ -100,7 +100,7 @@ go install github.com/lc/gau/v2/cmd/gau@latest
 go install github.com/projectdiscovery/katana/cmd/katana@latest
 
 # Install Subdominatr
-pip install git+https://github.com/RevoltSecurities/Subdominator --break-system-packages
+pip install --upgrade subdominator --break-system-packages
 
 # Install Uro
 pip3 install uro --break-system-packages
@@ -189,3 +189,20 @@ echo "Installation completed!"
 
 
 # add this line to vm ware .vmx file : `keyboard.vusb.enable = "TRUE"`
+
+#To-Make-Bash-Good-With-Syntax-Hilighting:
+# git clone https://github.com/akinomyoga/ble.sh.git
+# cd ble.sh
+# make
+# make INSDIR="$HOME/.local/share/blesh" install
+
+# bashrc
+
+# Add the following line at the beginning of bashrc
+#(R)[[ $- == *i* ]] &&
+  #(R)source "$HOME/.local/share/blesh/ble.sh" --attach=none
+
+# ... other bashrc settings ...
+
+# Add the following line at the end of bashrc
+#(R)[[ ${BLE_VERSION-} ]] && ble-attach
