@@ -208,3 +208,15 @@ echo "Installation completed!"
 #(R)[[ ${BLE_VERSION-} ]] && ble-attach
 
 #apt -o "Acquire::https::Verify-Peer=false" update
+
+
+#Add this Lines For parrot Sound Fix :
+#first :
+#sudo nano /etc/default/grub
+#change from default to  this : GRUB_CMDLINE_LINUX_DEFAULT="quiet splash snd_hda_intel.dmic_detect=0"
+#save and then : sudo update-grub
+#Then
+#Edit the file /etc/modprobe.d/alsa-base.conf and add the following lines:
+#options snd-hda-intel dmic_detect=0
+#options snd-hda-intel model=laptop-amic enable=yes
+#then Reboot
