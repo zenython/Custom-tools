@@ -39,6 +39,9 @@ while IFS= read -r domain || [[ -n "$domain" ]]; do
 
     # GitLab Subdomains
     gitlab_output="gitlab-subdomains/${clean_domain}.txt"
-    gitlab-subdomains -d "$clean_domain" -t "$gt" -o "$gitlab_output"
+    (
+      cd gitlab-subdomains || exit
+      gitlab-subdomains -d "$clean_domain" -t "$gt"
+    )
   fi
 done < "$input_file"
