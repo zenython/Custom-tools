@@ -209,6 +209,9 @@ echo "Installation completed!"
 
 #apt -o "Acquire::https::Verify-Peer=false" update
 
+# Changing The Resolution in hyper-V :
+
+# set-VMVideo -VMName zenybox  -HorizontalResolution 2560 -VerticalResolution 1600 -ResolutionType Single
 
 #Add this Lines For parrot Sound Fix :
 #first :
