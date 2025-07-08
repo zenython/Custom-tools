@@ -1,1 +1,21 @@
-awk -F'^http[s]?://' '{print $2}' alive.txt > clear.txt
+#!/bin/bash
+
+# Check for input argument
+while getopts "i:" opt; do
+  case $opt in
+    i) input_file="$OPTARG"
+    ;;
+    \?) echo "Usage: $0 -i <input_file>"; exit 1
+    ;;
+  esac
+done
+
+# Check if input file was provided
+if [ -z "$input_file" ]; then
+  echo "Error: Input file not specified."
+  echo "Usage: $0 -i <input_file>"
+  exit 1
+fi
+
+# Run AWK command
+awk -F'^http[s]?://' '{print $2}' "$input_file" > clear.txt
