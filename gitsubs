@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Usage: ./gitsubs -i domains.txt
+
+# Ensure -i option is provided
+while getopts ":i:" opt; do
+  case $opt in
+    i) input_file="$OPTARG" ;;
+    \?) echo "Invalid option -$OPTARG" >&2; exit 1 ;;
+    :) echo "Option -$OPTARG requires an argument." >&2; exit 1 ;;
+  esac
+done
+
+# Check for input file
+if [ -z "$input_file" ]; then
+  echo "Usage: $0 -i <input_file>"
+  exit 1
+fi
+
+# Check if token is set
+if [ -z "$gt" ]; then
+  echo "Environment variable \$gt (token) is not set."
+  exit 1
+fi
+
+# Create directories
+mkdir -p github-subdomains
+mkdir -p gitlab-subdomains
+
+# Process each domain
+while IFS= read -r domain || [[ -n "$domain" ]]; do
+  clean_domain=$(echo "$domain" | tr -d '\r\n' | tr -cd '[:alnum:].-')
+  if [ -n "$clean_domain" ]; then
+    echo "[+] Scanning $clean_domain"
+
+    # GitHub Subdomains
+    github_output="github-subdomains/${clean_domain}.txt"
+    github-subdomains -d "$clean_domain" -t "$gt" -o "$github_output"
+
+    # GitLab Subdomains
+    gitlab_output="gitlab-subdomains/${clean_domain}.txt"
+    (
+      cd gitlab-subdomains || exit
+      gitlab-subdomains -d "$clean_domain" -t "$gt"
+    )
+  fi
+done < "$input_file"

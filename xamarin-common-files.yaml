@@ -1,0 +1,23 @@
+id: xamarin-common-files
+
+info:
+  name: Xamarin Application Detection in Common Files
+  author: Juan Urbano Stordeur
+  severity: informational
+  tags: xamarin_apps
+
+files:
+  - path: /path/to/your/files
+ recursive: true
+ matchers:
+   - type: grep
+     part: content
+     condition: any
+     words:
+       - "assemblies/assemblies.blob"
+       - "Xamarin"
+       - ".dll"
+
+ extractors:
+   - type: regex
+     regex: "(Xamarin.*\\.dll|.*\\.dll|assemblies/assemblies\\.blob)"
